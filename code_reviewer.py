@@ -111,6 +111,51 @@ class CodeReviewer:
             'error': False
         }
 
+    def review_single_file_streaming(self, filename: str, diff: str, language: str, change_type: str):
+        """Review a single file with streaming output.
+
+        Args:
+            filename: Name of the file
+            diff: The diff or content
+            language: Programming language
+            change_type: Type of change (modified, staged, untracked)
+
+        Yields:
+            Tuples of (chunk_text, is_complete, review_dict)
+            - chunk_text: The text chunk from the AI
+            - is_complete: True if this is the final chunk
+            - review_dict: Complete review dict (only on final chunk)
+        """
+        review_text = ""
+        try:
+            for chunk in self.ollama_client.review_code_streaming(filename, diff, language):
+                review_text += chunk
+                yield (chunk, False, None)
+
+            # Final chunk with complete review
+            rating = self._extract_rating(review_text)
+            review_dict = {
+                'file': filename,
+                'type': change_type,
+                'language': language,
+                'review': review_text,
+                'rating': rating,
+                'diff_lines': len(diff.split('\n')),
+                'error': False
+            }
+            yield ("", True, review_dict)
+        except Exception as e:
+            error_msg = f"Error during review: {str(e)}"
+            review_dict = {
+                'file': filename,
+                'type': change_type,
+                'language': language,
+                'review': error_msg,
+                'rating': 'ERROR',
+                'error': True
+            }
+            yield (error_msg, True, review_dict)
+
     def _extract_rating(self, review_text: str) -> str:
         """Extract rating from review text.
 

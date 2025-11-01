@@ -94,28 +94,41 @@ class CodeReviewApp:
         if not self.tui.confirm_action(f"\nReview {len(changes)} file(s)?"):
             return
 
-        self.tui.show_info("Starting AI review... This may take a moment.")
+        self.tui.show_info("Starting AI review... Watch the magic happen! ✨")
 
-        progress = self.tui.show_review_progress(len(changes))
+        reviews = []
 
-        with progress:
-            task = progress.add_task("[cyan]Reviewing files...", total=len(changes))
+        # Review each file with streaming output
+        for i, change in enumerate(changes, 1):
+            self.tui.show_info(f"[{i}/{len(changes)}] Reviewing {change['file']}...")
+            self.tui.show_streaming_review_header(
+                change['file'],
+                change['type'],
+                change['language']
+            )
 
-            reviews = []
-            for i in range(0, len(changes), config.REVIEW_BATCH_SIZE):
-                batch = changes[i:i + config.REVIEW_BATCH_SIZE]
-                batch_reviews = self.code_reviewer._review_batch(batch)
-                reviews.extend(batch_reviews)
-                progress.update(task, advance=len(batch))
+            # Stream the review
+            review_dict = None
+            for chunk, is_complete, review_data in self.code_reviewer.review_single_file_streaming(
+                change['file'],
+                change['diff'],
+                change['language'],
+                change['type']
+            ):
+                if not is_complete:
+                    self.tui.show_streaming_chunk(chunk)
+                else:
+                    review_dict = review_data
 
-        # Show results
-        self.tui.console.print()
-        for review in reviews:
-            self.tui.show_review_result(review)
+            # Finalize this review
+            if review_dict:
+                self.tui.finalize_streaming_review(review_dict['rating'])
+                reviews.append(review_dict)
 
         # Show summary
-        summary = self.code_reviewer.get_summary(reviews)
-        self.tui.show_summary(summary)
+        if reviews:
+            summary = self.code_reviewer.get_summary(reviews)
+            self.tui.show_summary(summary)
 
     def review_staged(self):
         """Review staged changes."""
@@ -132,28 +145,41 @@ class CodeReviewApp:
         if not self.tui.confirm_action(f"\nReview {len(changes)} file(s)?"):
             return
 
-        self.tui.show_info("Starting AI review... This may take a moment.")
+        self.tui.show_info("Starting AI review... Watch the magic happen! ✨")
 
-        progress = self.tui.show_review_progress(len(changes))
+        reviews = []
 
-        with progress:
-            task = progress.add_task("[cyan]Reviewing files...", total=len(changes))
+        # Review each file with streaming output
+        for i, change in enumerate(changes, 1):
+            self.tui.show_info(f"[{i}/{len(changes)}] Reviewing {change['file']}...")
+            self.tui.show_streaming_review_header(
+                change['file'],
+                change['type'],
+                change['language']
+            )
 
-            reviews = []
-            for i in range(0, len(changes), config.REVIEW_BATCH_SIZE):
-                batch = changes[i:i + config.REVIEW_BATCH_SIZE]
-                batch_reviews = self.code_reviewer._review_batch(batch)
-                reviews.extend(batch_reviews)
-                progress.update(task, advance=len(batch))
+            # Stream the review
+            review_dict = None
+            for chunk, is_complete, review_data in self.code_reviewer.review_single_file_streaming(
+                change['file'],
+                change['diff'],
+                change['language'],
+                change['type']
+            ):
+                if not is_complete:
+                    self.tui.show_streaming_chunk(chunk)
+                else:
+                    review_dict = review_data
 
-        # Show results
-        self.tui.console.print()
-        for review in reviews:
-            self.tui.show_review_result(review)
+            # Finalize this review
+            if review_dict:
+                self.tui.finalize_streaming_review(review_dict['rating'])
+                reviews.append(review_dict)
 
         # Show summary
-        summary = self.code_reviewer.get_summary(reviews)
-        self.tui.show_summary(summary)
+        if reviews:
+            summary = self.code_reviewer.get_summary(reviews)
+            self.tui.show_summary(summary)
 
     def run_quick_review(self, staged: bool = False):
         """Run a quick review without interaction.

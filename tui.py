@@ -161,6 +161,50 @@ class ReviewTUI:
 
         self.console.print()
 
+    def show_streaming_review_header(self, filename: str, change_type: str, language: str):
+        """Display the header for a streaming review.
+
+        Args:
+            filename: Name of the file being reviewed
+            change_type: Type of change
+            language: Programming language
+        """
+        header = Text()
+        header.append(f"📄 {filename}", style="bold cyan")
+        header.append(f" [{change_type}]", style="dim")
+        header.append(f" • {language}", style="green")
+        header.append(" • Reviewing...", style="yellow")
+
+        self.console.print()
+        self.console.print(header)
+        self.console.print("─" * self.console.width, style="dim")
+
+    def show_streaming_chunk(self, chunk: str):
+        """Display a chunk of streaming review.
+
+        Args:
+            chunk: Text chunk to display
+        """
+        self.console.print(chunk, end="")
+
+    def finalize_streaming_review(self, rating: str):
+        """Display the final rating after streaming is complete.
+
+        Args:
+            rating: Final rating
+        """
+        rating_colors = {
+            'EXCELLENT': 'bold green',
+            'GOOD': 'green',
+            'FAIR': 'yellow',
+            'NEEDS_WORK': 'red',
+            'ERROR': 'bold red',
+            'UNKNOWN': 'white'
+        }
+        color = rating_colors.get(rating, 'white')
+        self.console.print(f"\n\n[{color}]✓ Rating: {rating}[/{color}]")
+        self.console.print()
+
     def show_summary(self, summary: Dict[str, any]):
         """Display review summary.
 

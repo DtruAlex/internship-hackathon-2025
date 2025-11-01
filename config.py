@@ -1,9 +1,11 @@
 """Configuration settings for the AI Code Review Assistant."""
 
+import os
+
 # Ollama settings
-OLLAMA_MODEL = "llama3.2:1b"
-OLLAMA_HOST = "http://localhost:11434"
-OLLAMA_TIMEOUT = 60
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:1b")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "60"))
 
 # Review settings
 MAX_DIFF_SIZE = 10000  # Maximum characters per diff to review

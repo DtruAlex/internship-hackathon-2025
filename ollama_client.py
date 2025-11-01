@@ -39,7 +39,7 @@ class OllamaClient:
         """
         try:
             models = self.client.list()
-            return any(self.model in model['name'] for model in models.get('models', []))
+            return any(self.model in model['model'] for model in models.get('models', []))
         except Exception:
             return False
 
@@ -85,6 +85,52 @@ class OllamaClient:
             return response['message']['content']
         except Exception as e:
             return f"Error during review: {str(e)}"
+
+    def review_code_streaming(self, filename: str, diff: str, language: str = "python"):
+        """Request a code review from the AI model with streaming response.
+
+        Args:
+            filename: Name of the file being reviewed
+            diff: The code diff to review
+            language: Programming language of the code
+
+        Yields:
+            Chunks of the AI's review response as they are generated
+        """
+        if len(diff) > config.MAX_DIFF_SIZE:
+            diff = diff[:config.MAX_DIFF_SIZE] + "\n... (truncated)"
+
+        prompt = config.REVIEW_PROMPT_TEMPLATE.format(
+            filename=filename,
+            language=language,
+            diff=diff
+        )
+
+        try:
+            stream = self.client.chat(
+                model=self.model,
+                messages=[
+                    {
+                        'role': 'system',
+                        'content': config.SYSTEM_PROMPT
+                    },
+                    {
+                        'role': 'user',
+                        'content': prompt
+                    }
+                ],
+                options={
+                    'temperature': 0.3,
+                    'num_predict': 500,
+                },
+                stream=True
+            )
+
+            for chunk in stream:
+                if 'message' in chunk and 'content' in chunk['message']:
+                    yield chunk['message']['content']
+        except Exception as e:
+            yield f"Error during review: {str(e)}"
 
     def get_quick_summary(self, changes_summary: str) -> Optional[str]:
         """Get a quick summary of all changes.
