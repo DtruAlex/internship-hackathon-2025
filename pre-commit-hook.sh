@@ -1,34 +1,60 @@
 #!/bin/bash
 
-# Pre-commit hook for AI Code Review
-# Copy this to .git/hooks/pre-commit and make it executable
+# Pre-commit hook for AI Code Review with Streaming
+# This hook runs before every commit to review your staged changes
+#
+# Installation:
+#   ./install-hook.sh
+# Or manually:
+#   cp pre-commit-hook.sh .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+#
+# To skip the hook for one commit:
+#   git commit --no-verify
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo -e "${GREEN}🤖 Running AI Code Review...${NC}"
+# If running from .git/hooks/, adjust the path
+if [[ "$SCRIPT_DIR" == *".git/hooks"* ]]; then
+    REPO_ROOT="$(git rev-parse --show-toplevel)"
+    REVIEW_SCRIPT="$REPO_ROOT/main.py"
+else
+    # Running from repo root
+    REVIEW_SCRIPT="$SCRIPT_DIR/main.py"
+fi
 
-# Path to the code review script
-REVIEW_SCRIPT="/home/dumi/Projects/haufe-2025-hackathon/main.py"
-PYTHON_ENV="/home/dumi/Projects/haufe-2025-hackathon/.venv/bin/python"
-
-# Check if Ollama is running
-if ! curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-    echo -e "${YELLOW}⚠️  Ollama is not running. Skipping AI review.${NC}"
-    echo -e "${YELLOW}Start Ollama with: ollama serve${NC}"
+# Try to find Python (prefer venv if it exists)
+if [ -f "$REPO_ROOT/.venv/bin/python" ]; then
+    PYTHON="$REPO_ROOT/.venv/bin/python"
+elif [ -f "$SCRIPT_DIR/.venv/bin/python" ]; then
+    PYTHON="$SCRIPT_DIR/.venv/bin/python"
+elif command -v python3 &> /dev/null; then
+    PYTHON="python3"
+elif command -v python &> /dev/null; then
+    PYTHON="python"
+else
+    echo "⚠️  Python not found. Skipping AI review."
     exit 0
 fi
 
-# Run the review on staged changes
-$PYTHON_ENV $REVIEW_SCRIPT --staged
+# Configuration
+# Set BLOCK_ON_ISSUES=true to prevent commits with code quality issues
+BLOCK_ON_ISSUES=${BLOCK_ON_ISSUES:-false}
 
-# Check if there were any critical issues
-# For now, we always allow the commit (exit 0)
-# You can modify this to exit 1 to block commits with issues
+# Build command
+CMD="$PYTHON $REVIEW_SCRIPT --precommit"
 
-echo -e "${GREEN}✅ Review complete. Proceeding with commit.${NC}"
-exit 0
+if [ "$BLOCK_ON_ISSUES" = "true" ]; then
+    CMD="$CMD --block-on-issues"
+fi
+
+# Run the AI code review with streaming output
+$CMD
+
+# Capture exit code
+EXIT_CODE=$?
+
+# Exit with the same code (0 = allow commit, 1 = block commit)
+exit $EXIT_CODE
 
