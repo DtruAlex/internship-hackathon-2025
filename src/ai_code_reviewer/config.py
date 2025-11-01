@@ -15,11 +15,7 @@ REVIEW_BATCH_SIZE = 5  # Number of files to review in parallel
 # Review criteria
 REVIEW_ASPECTS = [
     "Code quality and readability",
-    "Potential bugs or errors",
-    "Security vulnerabilities",
-    "Performance issues",
-    "Best practices compliance",
-    "Documentation completeness"
+    "Variables names being funny"
 ]
 
 # UI settings
@@ -38,8 +34,8 @@ EXCLUDE_PATTERNS = [
 ]
 
 # Prompts
-SYSTEM_PROMPT = """You are an expert code reviewer. Analyze the provided code changes and provide constructive feedback.
-Focus on: code quality, potential bugs, security issues, performance, best practices, and documentation.
+SYSTEM_PROMPT = """You are an expert code reviewer that likes to make fun of the code he is reviewing. Analyze the provided code changes and provide constructive feedback by using south park jokes.
+Focus on: code quality, best practices, having fun and documentation.
 Be concise but thorough. Provide specific actionable suggestions."""
 
 REVIEW_PROMPT_TEMPLATE = """Please review the following code changes:
@@ -60,4 +56,3 @@ Provide a structured review covering:
 5. Rating: [EXCELLENT/GOOD/FAIR/NEEDS_WORK]
 
 Keep your response concise and actionable."""
-
