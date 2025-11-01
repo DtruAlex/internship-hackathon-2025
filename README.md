@@ -28,7 +28,7 @@ git commit -m "Your message"
 # 🤖 AI reviews your code in real-time ✨
 ```
 
-👉 **[See it in action - SHOWCASE.md](SHOWCASE.md)** | **[Setup Guide - PRECOMMIT_GUIDE.md](PRECOMMIT_GUIDE.md)**
+👉 **[See it in action - SHOWCASE.md](docs/SHOWCASE.md)** | **[Setup Guide - PRECOMMIT_GUIDE.md](docs/PRECOMMIT_GUIDE.md)**
 
 ---
 
@@ -50,9 +50,16 @@ git commit -m "Your message"
 
 ## Installation
 
-1. Clone the repository
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd haufe-2025-hackathon
+```
+
 2. Install dependencies:
 ```bash
+make install
+# or
 pip install -r requirements.txt
 ```
 
@@ -62,6 +69,13 @@ ollama pull llama3.2:1b
 ollama serve
 ```
 
+4. (Optional) Install in development mode:
+```bash
+make dev-install
+# or
+pip install -e .
+```
+
 ## Quick Start
 
 ### Option 1: Automatic Pre-Commit Hook (Recommended)
@@ -69,31 +83,35 @@ ollama serve
 Install the pre-commit hook to automatically review code before every commit:
 
 ```bash
-./install-hook.sh
+make install-hook
+# or
+./scripts/install-hook.sh
 ```
 
 Now every `git commit` will trigger an AI review with real-time streaming! ✨
 
-See [PRECOMMIT_GUIDE.md](PRECOMMIT_GUIDE.md) for detailed setup and configuration.
+See [PRECOMMIT_GUIDE.md](docs/PRECOMMIT_GUIDE.md) for detailed setup and configuration.
 
 ### Option 2: Manual Interactive Mode
 
 Navigate to your git repository and run:
 
 ```bash
-python main.py --interactive
+make run
+# or
+./ai-code-review --interactive
 ```
 
 Or review staged changes directly:
 
 ```bash
-python main.py --staged
+./ai-code-review --staged
 ```
 
 Or run as a pre-commit hook manually:
 
 ```bash
-python main.py --precommit
+./ai-code-review --precommit
 ```
 
 ### Available Commands
@@ -106,11 +124,14 @@ python main.py --precommit
 
 ## Documentation
 
-- 📖 **[Pre-Commit Hook Guide](PRECOMMIT_GUIDE.md)** - Complete setup and configuration guide
-- 🔧 **[Streaming Implementation](STREAMING_IMPLEMENTATION.md)** - Technical details of streaming reviews
-- 📋 **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Overview of all features
-- 🚀 **[Quick Start](QUICKSTART.md)** - Get started in minutes
-- 👨‍💻 **[Developer Guide](DEVELOPER_GUIDE.md)** - Contribute to the project
+📂 **[See all documentation →](docs/)** | 🏗️ **[Project Structure →](docs/PROJECT_STRUCTURE.md)**
+
+### Quick Links
+- 📖 **[Pre-Commit Hook Guide](docs/PRECOMMIT_GUIDE.md)** - Complete setup and configuration guide
+- 🔧 **[Streaming Implementation](docs/STREAMING_IMPLEMENTATION.md)** - Technical details of streaming reviews
+- 📋 **[Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md)** - Overview of all features
+- 🚀 **[Quick Start](docs/QUICKSTART.md)** - Get started in minutes
+- 👨‍💻 **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Contribute to the project
 
 ## Configuration
 
@@ -123,14 +144,28 @@ Edit `config.py` to customize:
 ## Project Structure
 
 ```
-.
-├── main.py              # Entry point
-├── code_reviewer.py     # Core review logic
-├── git_handler.py       # Git operations
-├── ollama_client.py     # Ollama API client
-├── tui.py              # Rich TUI interface
-├── config.py           # Configuration
-└── requirements.txt    # Dependencies
+haufe-2025-hackathon/
+├── ai-code-review           # Main entry point script
+├── setup.py                 # Package setup
+├── requirements.txt         # Dependencies
+├── Makefile                 # Common tasks
+├── src/
+│   └── ai_code_reviewer/    # Main package
+│       ├── __init__.py
+│       ├── __main__.py      # CLI entry point
+│       ├── code_reviewer.py # Core review logic
+│       ├── git_handler.py   # Git operations
+│       ├── ollama_client.py # Ollama API client
+│       ├── tui.py           # Rich TUI interface
+│       └── config.py        # Configuration
+├── scripts/                 # Utility scripts
+│   ├── install-hook.sh      # Hook installer
+│   ├── demo-precommit.sh    # Demo script
+│   ├── check-status.sh      # Status checker
+│   └── pre-commit-hook.sh   # Git hook template
+├── tests/                   # Test suite
+├── docs/                    # Documentation
+└── .gitignore              # Git ignore rules
 ```
 
 ## License
